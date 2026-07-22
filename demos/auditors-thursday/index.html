@@ -26,20 +26,20 @@
         <div class="card">
           <h2><span class="dot"></span> the run · audit events</h2>
           <div id="events">
-            <div class="field"><label>session_start · session boundary opens <span class="val"><input type="checkbox" data-ev="session_start" checked></span></label></div>
-            <div class="field"><label>tool_call · governed source read (signed) <span class="val"><input type="checkbox" data-ev="tool_read" checked></span></label></div>
-            <div class="field"><label>tool_call · plan-first write (pre-authorized) <span class="val"><input type="checkbox" data-ev="plan_first" checked></span></label></div>
-            <div class="field"><label>skill_loaded · governed skill passed eligibility <span class="val"><input type="checkbox" data-ev="skill_loaded" checked></span></label></div>
-            <div class="field"><label>skill_skipped · skill failed eligibility (fail-closed) <span class="val"><input type="checkbox" data-ev="skill_skipped"></span></label></div>
-            <div class="field"><label>conformance_verdict · action checked vs action_scope <span class="val"><input type="checkbox" data-ev="conformance_verdict" checked></span></label></div>
-            <div class="field"><label>confidence_verdict · output adjudicated vs threshold <span class="val"><input type="checkbox" data-ev="confidence_verdict" checked></span></label></div>
-            <div class="field"><label>approval_requested · human approval ticket opened <span class="val"><input type="checkbox" data-ev="approval_requested" checked></span></label></div>
-            <div class="field"><label>approval_resolved · named reviewer approved <span class="val"><input type="checkbox" data-ev="approval_resolved" checked></span></label></div>
-            <div class="field"><label>temporal_drift · plan drift detected <span class="val"><input type="checkbox" data-ev="temporal_drift"></span></label></div>
-            <div class="field"><label>plan_invalidated · plan invalidated by drift <span class="val"><input type="checkbox" data-ev="plan_invalidated"></span></label></div>
-            <div class="field"><label>budget_exceeded · spend rejected at ceiling <span class="val"><input type="checkbox" data-ev="budget_exceeded"></span></label></div>
-            <div class="field"><label>purchase_settled · governed buy settled (#139) <span class="val"><input type="checkbox" data-ev="purchase_settled" checked></span></label></div>
-            <div class="field"><label>session_end · session boundary closes <span class="val"><input type="checkbox" data-ev="session_end" checked></span></label></div>
+            <div class="field"><label>session_start · session boundary opens <span class="val"><input type="checkbox" name="ev_session_start" data-ev="session_start" checked></span></label></div>
+            <div class="field"><label>tool_call · governed source read (signed) <span class="val"><input type="checkbox" name="ev_tool_read" data-ev="tool_read" checked></span></label></div>
+            <div class="field"><label>tool_call · plan-first write (pre-authorized) <span class="val"><input type="checkbox" name="ev_plan_first" data-ev="plan_first" checked></span></label></div>
+            <div class="field"><label>skill_loaded · governed skill passed eligibility <span class="val"><input type="checkbox" name="ev_skill_loaded" data-ev="skill_loaded" checked></span></label></div>
+            <div class="field"><label>skill_skipped · skill failed eligibility (fail-closed) <span class="val"><input type="checkbox" name="ev_skill_skipped" data-ev="skill_skipped"></span></label></div>
+            <div class="field"><label>conformance_verdict · action checked vs action_scope <span class="val"><input type="checkbox" name="ev_conformance_verdict" data-ev="conformance_verdict" checked></span></label></div>
+            <div class="field"><label>confidence_verdict · output adjudicated vs threshold <span class="val"><input type="checkbox" name="ev_confidence_verdict" data-ev="confidence_verdict" checked></span></label></div>
+            <div class="field"><label>approval_requested · human approval ticket opened <span class="val"><input type="checkbox" name="ev_approval_requested" data-ev="approval_requested" checked></span></label></div>
+            <div class="field"><label>approval_resolved · named reviewer approved <span class="val"><input type="checkbox" name="ev_approval_resolved" data-ev="approval_resolved" checked></span></label></div>
+            <div class="field"><label>temporal_drift · plan drift detected <span class="val"><input type="checkbox" name="ev_temporal_drift" data-ev="temporal_drift"></span></label></div>
+            <div class="field"><label>plan_invalidated · plan invalidated by drift <span class="val"><input type="checkbox" name="ev_plan_invalidated" data-ev="plan_invalidated"></span></label></div>
+            <div class="field"><label>budget_exceeded · spend rejected at ceiling <span class="val"><input type="checkbox" name="ev_budget_exceeded" data-ev="budget_exceeded"></span></label></div>
+            <div class="field"><label>purchase_settled · governed buy settled (#139) <span class="val"><input type="checkbox" name="ev_purchase_settled" data-ev="purchase_settled" checked></span></label></div>
+            <div class="field"><label>session_end · session boundary closes <span class="val"><input type="checkbox" name="ev_session_end" data-ev="session_end" checked></span></label></div>
           </div>
         </div>
         <div class="card">

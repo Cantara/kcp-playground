@@ -13,13 +13,11 @@
 :root[data-theme="light"] {
   --bg: #efe9dd; --panel: #fbf8f1; --panel-2: #f3ede1; --line: #ddd2bf;
   --ink: #241f18; --muted: #6b6154; --faint: #938877; --brass: #9a7a2b; --brass-dim: #b79642;
-  --pass-dim: #cdead8; --block-dim: #f6d5cf;
 }
 @media (prefers-color-scheme: light) {
   :root:not([data-theme="dark"]) {
     --bg: #efe9dd; --panel: #fbf8f1; --panel-2: #f3ede1; --line: #ddd2bf;
     --ink: #241f18; --muted: #6b6154; --faint: #938877; --brass: #9a7a2b; --brass-dim: #b79642;
-    --pass-dim: #cdead8; --block-dim: #f6d5cf;
   }
 }
 * { box-sizing: border-box; }
@@ -114,8 +112,8 @@ details.raw summary { font-family: var(--mono); font-size: 0.8rem; color: var(--
 details.raw summary:hover { color: var(--brass); }
 pre.json { font-family: var(--mono); font-size: 11px; color: var(--muted); background: var(--panel-2); border: 1px solid var(--line); border-radius: 9px; padding: 12px; overflow-x: auto; margin: 8px 0 0; }
 .verifyline { font-family: var(--mono); font-size: 0.78rem; margin-top: 8px; color: var(--faint); }
-.verifyline b.ok { color: var(--pass); }
-.verifyline b.no { color: var(--block); }
+.verifyline b.ok { color: var(--pass-dim); }
+.verifyline b.no { color: var(--block-dim); }
 
 .foot { margin-top: 40px; padding-top: 20px; border-top: 1px solid var(--line); color: var(--faint); font-size: 0.82rem; }
 .foot code { color: var(--muted); }
