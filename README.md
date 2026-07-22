@@ -1,5 +1,7 @@
 # KCP Playground
 
+### ▶ **[Try it live → cantara.github.io/kcp-playground](https://cantara.github.io/kcp-playground/)**
+
 Interactive, in-browser demos of the **defendable agent** — the KCP family's governed
 AI agent that keeps a written, checkable *receipt* for everything it does.
 
