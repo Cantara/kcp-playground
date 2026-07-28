@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>KCP Playground — The Composition Escape</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><text y='14' font-size='14'>🧾</text></svg>">
+<link rel="stylesheet" href="../../assets/shell.css">
+</head>
+<body>
+<div class="wrap">
+  <header class="top"><span class="brand"><a href="../../"><b>KCP</b> Playground</a> · 12 / 12 · the composition</span></header>
+
+  <h1>The Composition Escape</h1>
+  <p class="sub">A playbook is a procedure built from other procedures. Grant the playbook and it looks enactable — but does that grant reach the skills its steps invoke? Toggle the two grants and watch the planner decide.</p>
+
+  <div class="stage">
+    <p class="narrate" id="narrate">Grant the playbook, leave the skill ungranted, then press <b>▶ Ask the planner</b>.</p>
+    <div class="grid">
+      <div>
+        <div class="presets">
+          <button class="preset" data-preset="laundering">the escape attempt</button>
+          <button class="preset" data-preset="sound">both granted</button>
+          <button class="preset" data-preset="neither">neither granted</button>
+        </div>
+
+        <div class="card">
+          <h2><span class="dot"></span> playbook · cut-release</h2>
+          <div class="field"><label>load_eligible &mdash; the grant on the composition</label>
+            <div class="chips" id="pbChips">
+              <span class="chip" role="button" tabindex="0" aria-pressed="true" data-g="pb">granted</span>
+            </div>
+          </div>
+          <div class="field"><label>steps</label>
+            <pre class="mini" id="stepsView">- id: publish
+  uses: publish-package
+  authority_level: commit</pre>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2><span class="dot"></span> skill · publish-package</h2>
+          <div class="field"><label>load_eligible &mdash; the grant on the part</label>
+            <div class="chips" id="skChips">
+              <span class="chip" role="button" tabindex="0" aria-pressed="false" data-g="sk">granted</span>
+            </div>
+          </div>
+          <div class="field"><label>action_scope</label>
+            <pre class="mini">tools: [bash, git]
+paths: ["**"]</pre>
+          </div>
+          <button class="run" id="run">▶ Ask the planner</button>
+        </div>
+      </div>
+
+      <div class="printer">
+        <div class="slot"></div>
+        <div class="paperwell" id="well"><div class="empty">no receipt yet —<br>the printer is warm</div></div>
+        <div class="ledger"><span>playbooks · offered</span><span class="amt" id="ledger">0</span></div>
+      </div>
+    </div>
+
+    <nav class="nav">
+      <a href="../auditors-thursday/">← The Auditor's Thursday</a>
+      <a href="../../">All stations</a>
+      <a href="../superseded-policy/">Back to the start →</a>
+    </nav>
+  </div>
+
+  <p class="foot">Station 12 of 12. Decision = the real <code>skill_eligibility</code> composition rule from <code>kcp-agent</code> 0.21.0 (<code>planner.ts</code>), specified in <a href="https://github.com/Cantara/knowledge-context-protocol/blob/main/RFC-0028-Eligibility-Grants.md">RFC-0028</a> and SPEC.md &sect;4.3c.</p>
+</div>
+
+<script src="../../assets/shell.js"></script>
+<script>
+(() => {
+  "use strict";
+  const { el } = KCP; KCP.initTheme();
+
+  // ---- REAL eligibility logic (from kcp-agent 0.21.0 src/planner.ts) -------------
+  //
+  // §4.3c (KCP v0.30, RFC-0028): a governed procedure fails closed — it is
+  // invoke-eligible only with an explicit `load_eligible: true` grant. And eligibility
+  // does NOT compose: a grant on a playbook does not reach the units its steps name.
+  //
+  // The second rule is the one this station exists for. Without it, a single grant on a
+  // composition would make any unit in the manifest reachable by naming it in a step —
+  // including one a human deliberately withheld. The planner would hand an agent a
+  // procedure whose first step invokes something it may not invoke.
+  function decideEligibility(playbook, steps, units) {
+    if (playbook.kind === "playbook" || playbook.kind === "skill") {
+      if (playbook.load_eligible !== true) {
+        return {
+          gate: "skill_eligibility", passed: false,
+          reason: `kind: ${playbook.kind} not invoke-eligible: no explicit eligibility grant`,
+          facet: "grant",
+        };
+      }
+    }
+    if (playbook.kind === "playbook") {
+      for (const step of steps) {
+        if (!step.uses) continue;
+        const target = units.find((u) => u.id === step.uses);
+        if (target && target.load_eligible !== true) {
+          return {
+            gate: "skill_eligibility", passed: false,
+            reason: `step '${step.id}' uses '${step.uses}', which is not invoke-eligible — a grant on a playbook does not compose to the units its steps name (§4.3c)`,
+            facet: "composition",
+          };
+        }
+      }
+    }
+    return {
+      gate: "skill_eligibility", passed: true,
+      reason: "playbook and every unit its steps name carry an explicit grant",
+      facet: "none",
+    };
+  }
+
+  // ---- wiring --------------------------------------------------------------------
+  const chips = (sel) => Array.from(document.querySelectorAll(sel + " .chip"));
+  const pbChips = chips("#pbChips"), skChips = chips("#skChips");
+  const granted = (cs) => cs[0].getAttribute("aria-pressed") === "true";
+
+  [...pbChips, ...skChips].forEach((c) => {
+    const toggle = () => c.setAttribute("aria-pressed", c.getAttribute("aria-pressed") === "true" ? "false" : "true");
+    c.addEventListener("click", toggle);
+    c.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggle(); } });
+  });
+
+  const presets = {
+    laundering: { pb: true,  sk: false },
+    sound:      { pb: true,  sk: true  },
+    neither:    { pb: false, sk: false },
+  };
+  document.querySelectorAll(".preset").forEach((b) => b.addEventListener("click", () => {
+    const p = presets[b.dataset.preset];
+    pbChips[0].setAttribute("aria-pressed", p.pb ? "true" : "false");
+    skChips[0].setAttribute("aria-pressed", p.sk ? "true" : "false");
+  }));
+
+  let ledger = 0;
+  el("run").addEventListener("click", async () => {
+    const skill = {
+      id: "publish-package", kind: "skill", load_eligible: granted(skChips) || undefined,
+    };
+    const playbook = {
+      id: "cut-release", kind: "playbook", load_eligible: granted(pbChips) || undefined,
+    };
+    const steps = [{ id: "publish", uses: "publish-package", authority_level: "commit" }];
+    const v = decideEligibility(playbook, steps, [skill, playbook]);
+
+    el("narrate").innerHTML = v.passed
+      ? `The planner <b>offers</b> <code>cut-release</code> — the composition and every unit its steps name carry a grant.`
+      : v.facet === "composition"
+        ? `The planner <b>refuses</b> <code>cut-release</code>. It holds its own grant, but <code>publish-package</code> does not — and <b>a grant on a playbook does not reach the units its steps name</b>. Otherwise one grant would make every skill in the manifest reachable by naming it in a step.`
+        : `The planner <b>refuses</b> <code>cut-release</code> — no grant on the composition itself. Governed procedures fail closed.`;
+
+    if (v.passed) { ledger += 1; el("ledger").textContent = ledger; }
+
+    await KCP.printReceipt(el("well"), {
+      title: "ELIGIBILITY RECEIPT", meta: "gate: skill_eligibility · §4.3c",
+      lines: [
+        { k: "playbook", v: "cut-release" },
+        { k: "playbook grant", v: granted(pbChips) ? "load_eligible: true" : "none" },
+        { k: "step uses", v: "publish-package" },
+        { k: "that grant", v: granted(skChips) ? "load_eligible: true" : "none" },
+      ],
+      stampClass: v.passed ? "pass" : "block",
+      stampText: v.passed ? "✓ OFFERED" : "✗ REFUSED",
+      reason: v.reason,
+      footer: v.passed
+        ? [{ k: "reaches the agent", v: "yes ✓" }, { k: "event", v: "unit_selected" }]
+        : [{ k: "reaches the agent", v: "NO" }, { k: "deciding facet", v: v.facet }],
+      payload: {
+        playbook: { id: playbook.id, kind: playbook.kind, load_eligible: playbook.load_eligible ?? null },
+        steps,
+        target: { id: skill.id, kind: skill.kind, load_eligible: skill.load_eligible ?? null },
+        verdict: { gate: v.gate, passed: v.passed, reason: v.reason },
+      },
+    });
+  });
+})();
+</script>
+</body>
+</html>

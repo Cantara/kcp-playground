@@ -5,7 +5,7 @@
 Interactive, in-browser demos of the **defendable agent** — the KCP family's governed
 AI agent that keeps a written, checkable *receipt* for everything it does.
 
-Eleven stations, one per organ. Each runs the **real** `kcp-agent` / `kcp-harness`
+Twelve stations, one per organ. Each runs the **real** `kcp-agent` / `kcp-harness`
 decision code in the browser (no server, nothing scripted) and signs each verdict with
 genuine `crypto.subtle` (Ed25519 where supported, ECDSA P-256 fallback). Drag the
 controls and the adjudicator re-decides live; a thermal printer prints the verdict.

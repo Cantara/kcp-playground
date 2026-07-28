@@ -9,7 +9,7 @@
 </head>
 <body>
 <div class="wrap">
-  <header class="top"><span class="brand"><a href="../../"><b>KCP</b> Playground</a> · 09 / 11 · one adjudicator</span></header>
+  <header class="top"><span class="brand"><a href="../../"><b>KCP</b> Playground</a> · 09 / 12 · one adjudicator</span></header>
   <h1>One Verdict, Two Depths</h1>
   <p class="sub">KCP governs at the <b>MCP proxy boundary</b> — intercepting the agent's tool calls — and again <b>inside the agent's own runtime loop</b>, where the pi-kcp runtime checks its own actions. Two enforcement points, at very different depths. But there is only <b>one adjudicator</b>: both call the same <code>checkConformance</code>. The same action yields the same verdict at both depths, <b>by construction</b>. Set a scope, aim an action, and watch a single function get invoked twice — then watch the two verdicts get compared byte-for-byte. <b>The decision is the real <code>checkConformance</code> tool/path logic from <code>kcp-harness</code>, and the receipt is signed &amp; verified with genuine <code>crypto.subtle</code> in your browser.</b></p>
 
@@ -61,7 +61,7 @@
     </nav>
   </div>
 
-  <p class="foot">Station 09 of 11. One adjudicator, invoked at two depths: the <b>MCP proxy boundary</b> builds the <code>ObservedAction</code> from the intercepted tool call (via <code>classifier.extractTargets</code>) and adjudicates it; the <b>pi-kcp runtime loop</b> supplies its own action directly and adjudicates it. Both call the <em>same</em> <code>checkConformance</code> (verbatim: fail-closed no-scope → tools → paths, with <code>normalizePath</code>/<code>matchesPrefix</code> traversal-safe prefix membership). The two verdicts are then deep-compared — identical by construction. Receipt signed &amp; verified with genuine <code>crypto.subtle</code>.</p>
+  <p class="foot">Station 09 of 12. One adjudicator, invoked at two depths: the <b>MCP proxy boundary</b> builds the <code>ObservedAction</code> from the intercepted tool call (via <code>classifier.extractTargets</code>) and adjudicates it; the <b>pi-kcp runtime loop</b> supplies its own action directly and adjudicates it. Both call the <em>same</em> <code>checkConformance</code> (verbatim: fail-closed no-scope → tools → paths, with <code>normalizePath</code>/<code>matchesPrefix</code> traversal-safe prefix membership). The two verdicts are then deep-compared — identical by construction. Receipt signed &amp; verified with genuine <code>crypto.subtle</code>.</p>
 </div>
 
 <script src="../../assets/shell.js"></script>
