@@ -9,7 +9,7 @@
 </head>
 <body>
 <div class="wrap">
-  <header class="top"><span class="brand"><a href="../../"><b>KCP</b> Playground</a> · 02 / 11 · the playbook it runs</span></header>
+  <header class="top"><span class="brand"><a href="../../"><b>KCP</b> Playground</a> · 02 / 12 · the playbook it runs</span></header>
   <h1>The Poisoned Playbook</h1>
   <p class="sub">A governed playbook is signed. Before the agent runs it, KCP verifies the detached <code>ed25519</code> signature over the <b>exact published bytes</b>. If the body was tampered with after signing, the signature no longer matches and the playbook is refused — <b>fail-closed, always fatal</b>. Under <code>--require-signature</code> (strict), an <b>unsigned</b> playbook is refused too. The verdict below is the real <code>verifyManifestText</code> status + the real <code>follow()</code> gate decision, with verbatim reason wording.</p>
 
@@ -52,7 +52,7 @@
     </nav>
   </div>
 
-  <p class="foot">Station 02 of 11. Signature verification = the real <code>verifyManifestText</code> (<code>kcp-agent/src/verify.ts</code>): a present-but-wrong signature is <code>invalid</code>; a missing one is <code>unsigned</code>. Gate = the real <code>follow()</code> decision (<code>src/follow.ts</code>): <code>invalid</code> is always fatal; under <code>--require-signature</code> anything not <code>verified</code> is refused. A browser cannot hold the project's keys, so the signature <em>state</em> is modelled — the status, gate decision, and reason wording are verbatim.</p>
+  <p class="foot">Station 02 of 12. Signature verification = the real <code>verifyManifestText</code> (<code>kcp-agent/src/verify.ts</code>): a present-but-wrong signature is <code>invalid</code>; a missing one is <code>unsigned</code>. Gate = the real <code>follow()</code> decision (<code>src/follow.ts</code>): <code>invalid</code> is always fatal; under <code>--require-signature</code> anything not <code>verified</code> is refused. A browser cannot hold the project's keys, so the signature <em>state</em> is modelled — the status, gate decision, and reason wording are verbatim.</p>
 </div>
 
 <script src="../../assets/shell.js"></script>
