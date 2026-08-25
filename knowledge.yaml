@@ -40,6 +40,21 @@ units:
         stations,
       ]
 
+  - id: add-station
+    path: skills/add-station/SKILL.md
+    kind: skill
+    intent: "How do I add a new demo station without breaking the hardcoded
+      station numbering shared across every page?"
+    scope: project
+    audience: [agent, operator]
+    validated: "2026-08-25"
+    triggers: [add station, new demo, new organ, station numbering, nav links]
+    load_eligible: true
+    action_scope:
+      tools: [read, write, edit, bash, git]
+      paths: ["demos/**/index.html", "index.html", "README.md", "knowledge.yaml"]
+      capabilities: []
+
 # foundation: this repo runs the REAL kcp-agent and kcp-harness decision
 # code in-browser, not a simulation of it — a genuine build-on dependency,
 # not just thematic kinship.
