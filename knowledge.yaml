@@ -1,0 +1,63 @@
+# KCP Playground — root manifest
+kcp_version: "0.32"
+project: "KCP Playground"
+version: "1.0.0"
+updated: "2026-08-25"
+
+trust:
+  provenance:
+    publisher: "eXOReaction, under Cantara"
+    publisher_url: https://github.com/Cantara
+
+freshness_policy:
+  max_age_days: 30
+  on_stale: warn
+
+description: >
+  Interactive, in-browser demos of the defendable agent — the KCP family's
+  governed AI agent that keeps a written, checkable receipt for every
+  decision. Twelve stations, one per organ, each running the real
+  kcp-agent / kcp-harness decision code in the browser (no server, nothing
+  scripted) and signing each verdict with genuine crypto.subtle
+  (Ed25519 where supported, ECDSA P-256 fallback). Static site, no build.
+
+units:
+  - id: overview
+    path: README.md
+    intent: "What is KCP Playground, what are the twelve stations, and how
+      is it built (shared shell, per-station demos, live signing)?"
+    scope: global
+    audience: [human, agent, developer]
+    validated: "2026-08-25"
+    triggers:
+      [
+        kcp playground,
+        defendable agent,
+        receipts,
+        kcp-agent,
+        kcp-harness,
+        signing demo,
+        stations,
+      ]
+
+# foundation: this repo runs the REAL kcp-agent and kcp-harness decision
+# code in-browser, not a simulation of it — a genuine build-on dependency,
+# not just thematic kinship.
+manifests:
+  - id: kcp-core
+    url: https://raw.githubusercontent.com/Cantara/knowledge-context-protocol/main/knowledge.yaml
+    label: "Knowledge Context Protocol — the spec the defendable agent implements"
+    relationship: foundation
+    update_frequency: monthly
+
+  - id: kcp-agent
+    url: https://raw.githubusercontent.com/Cantara/kcp-agent/main/knowledge.yaml
+    label: "kcp-agent — the real decision code running in the browser demos"
+    relationship: foundation
+    update_frequency: monthly
+
+  - id: kcp-harness
+    url: https://raw.githubusercontent.com/Cantara/kcp-harness/main/knowledge.yaml
+    label: "kcp-harness — the real governance-enforcement code running in the browser demos"
+    relationship: foundation
+    update_frequency: monthly
