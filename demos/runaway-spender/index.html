@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>KCP Playground — The Runaway Spender, Contained</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><text y='14' font-size='14'>💸</text></svg>">
+<link rel="stylesheet" href="../../assets/shell.css">
+</head>
+<body>
+<div class="wrap">
+  <header class="top"><span class="brand"><a href="../../"><b>KCP</b> Playground</a> · 14 / 16 · what it spends, unattended</span></header>
+  <h1>The Runaway Spender, Contained</h1>
+  <p class="sub">The commerce twin of <a href="../runaway/">The Runaway, Contained</a>: an autonomous agent settles an in-scope buy, then goes rogue <b>twice</b> — over the spend ceiling, then to a vendor outside its envelope. Both are held <b>before the wallet is ever asked to authorize them</b>, and the run resumes. <b>Each step's allow/block is computed by the real spend branch of <code>checkConformance</code> from <code>kcp-harness</code>.</b></p>
+
+  <div class="stage">
+    <p class="narrate" id="narrate">Set the envelope, then press <b>▶ Run autonomous agent</b>. The gate decides each buy before it settles — and never stops the loop.</p>
+    <div class="grid">
+      <div>
+        <div class="presets">
+          <button class="preset" data-preset="contained">the real demo (both rogue buys held)</button>
+          <button class="preset" data-preset="clean">wide envelope — nothing held</button>
+        </div>
+        <div class="card">
+          <h2><span class="dot"></span> skill · buy-insight · action_scope.spend</h2>
+          <div class="field"><label>max_spend <span class="val"><span id="maxV">500</span> USD</span></label><input type="range" id="maxSpend" min="0" max="1000" step="10" value="500"></div>
+          <div class="field"><label>allowed_vendors</label>
+            <div class="chips" id="vendorChips">
+              <span class="chip" role="button" tabindex="0" aria-pressed="true" data-v="acme-data">acme-data</span>
+              <span class="chip" role="button" tabindex="0" aria-pressed="false" data-v="sketchy-exfil-co">sketchy-exfil-co</span>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <h2><span class="dot"></span> agent · run transcript</h2>
+          <div id="steps"><div class="verifyline">idle — no run yet</div></div>
+        </div>
+        <button class="run" id="run">▶ Run autonomous agent</button>
+      </div>
+      <div class="printer">
+        <div class="slot"></div>
+        <div class="paperwell" id="well"><div class="empty">no receipt yet —<br>the loop has not run</div></div>
+        <div class="ledger"><span>wallet · authorized</span><span class="amt" id="ledger">0 USD</span></div>
+      </div>
+    </div>
+
+    <nav class="nav">
+      <a href="../budgeted-researcher/">← The Budgeted Researcher</a>
+      <a href="../../">All stations</a>
+      <a href="../signed-receipts/">Signed Receipts →</a>
+    </nav>
+  </div>
+
+  <p class="foot">Station 14 of 16. Decision = the real spend branch of <code>checkConformance</code> from <code>kcp-harness</code> (verbatim: no spend authority → vendor allowlist → currency → <code>max_spend</code>, fail-closed). On a held buy, <code>wallet.authorize()</code> is never called — the loop halts nothing and resumes. Envelope and vendor names match the real fixture in <code>pi-kcp/demos/13-runaway-spender</code>.</p>
+</div>
+
+<script src="../../assets/shell.js"></script>
+<script>
+(() => {
+  "use strict";
+  const { el, esc } = KCP; KCP.initTheme();
+
+  // ---- REAL purchase-conformance logic (verbatim: spend branch of checkConformance,
+  //      kcp-harness/src/conformance.ts) ----
+  const isNonEmpty = (a) => Array.isArray(a) && a.length > 0;
+  const spendDeclared = (s) => !!s && (typeof s.max_spend === "number" || isNonEmpty(s.allowed_vendors) || typeof s.currency === "string");
+  function checkPurchase(scope, p) {
+    const { vendor, amount, currency } = p;
+    if (!spendDeclared(scope.spend)) return { passed: false, reason: `purchase of ${amount} ${currency} to "${vendor}" but the active skill declares no spend authority — fail-closed` };
+    const s = scope.spend;
+    if (isNonEmpty(s.allowed_vendors) && !s.allowed_vendors.includes(vendor)) return { passed: false, reason: `vendor "${vendor}" is outside the skill's authorized vendors [${s.allowed_vendors.join(", ")}]` };
+    if (typeof s.currency === "string" && currency !== s.currency) return { passed: false, reason: `currency mismatch: purchase in ${currency}, scope allows ${s.currency}` };
+    if (typeof s.max_spend === "number" && amount > s.max_spend) return { passed: false, reason: `purchase of ${amount} ${currency} to "${vendor}" exceeds max_spend ${s.max_spend} ${currency}` };
+    return { passed: true, reason: `within scope — vendor allowed, ${amount} ${currency} ≤ max_spend ${s.max_spend} ${currency}` };
+  }
+
+  const maxSpend = el("maxSpend"), stepsEl = el("steps");
+  const chips = [...document.querySelectorAll("#vendorChips .chip")];
+  const vendors = () => chips.filter((c) => c.getAttribute("aria-pressed") === "true").map((c) => c.dataset.v);
+  const sync = () => { el("maxV").textContent = maxSpend.value; };
+  maxSpend.addEventListener("input", sync);
+  chips.forEach((c) => {
+    const t = () => c.setAttribute("aria-pressed", c.getAttribute("aria-pressed") === "true" ? "false" : "true");
+    c.addEventListener("click", t);
+    c.addEventListener("keydown", (e) => { if (e.key === " " || e.key === "Enter") { e.preventDefault(); t(); } });
+  });
+  const presets = {
+    contained: { max: 500, vend: ["acme-data"] },
+    clean: { max: 1000, vend: ["acme-data", "sketchy-exfil-co"] },
+  };
+  document.querySelectorAll(".preset").forEach((b) => b.addEventListener("click", () => {
+    const p = presets[b.dataset.preset];
+    maxSpend.value = p.max;
+    chips.forEach((c) => c.setAttribute("aria-pressed", p.vend.includes(c.dataset.v) ? "true" : "false"));
+    sync();
+  }));
+
+  // Real fixed script (pi-kcp/demos/13-runaway-spender's own real captured run).
+  const SCRIPT = [
+    { action: "in-scope buy 120 USD → acme-data", purchase: { vendor: "acme-data", amount: 120, currency: "USD" } },
+    { action: "OVER max_spend: 900 USD → acme-data", purchase: { vendor: "acme-data", amount: 900, currency: "USD" } },
+    { action: "DISALLOWED vendor: 80 USD → sketchy-exfil-co", purchase: { vendor: "sketchy-exfil-co", amount: 80, currency: "USD" } },
+    { action: "resume: in-scope buy 60 USD → acme-data", purchase: { vendor: "acme-data", amount: 60, currency: "USD" } },
+  ];
+
+  const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+  function renderStep(action, passed) {
+    const d = document.createElement("div");
+    d.className = "verifyline";
+    d.innerHTML = esc(action) + " · " + (passed ? '<b class="ok">✓ settled</b>' : '<b class="no">✗ HELD</b>');
+    stepsEl.appendChild(d);
+  }
+
+  el("run").addEventListener("click", async () => {
+    el("run").disabled = true;
+    stepsEl.innerHTML = "";
+    el("narrate").innerHTML = `The agent is running unattended against <code>buy-insight</code>'s spend envelope (max_spend <code>${maxSpend.value} USD</code>, vendors <code>[${esc(vendors().join(", ") || "∅")}]</code>). The gate decides each buy before the wallet is asked.`;
+    const scope = { spend: { max_spend: Number(maxSpend.value), allowed_vendors: vendors(), currency: "USD" } };
+    const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    const results = [];
+    let authorized = 0, held = 0;
+    for (const step of SCRIPT) {
+      if (!reduce) await sleep(450);
+      const v = checkPurchase(scope, step.purchase);
+      if (v.passed) { authorized += step.purchase.amount; } else { held++; }
+      results.push({ action: step.action, passed: v.passed, reason: v.reason, purchase: step.purchase });
+      renderStep(step.action, v.passed);
+      el("ledger").textContent = authorized + " USD";
+    }
+
+    el("narrate").innerHTML = held
+      ? `The gate held <b>${held} rogue bu${held > 1 ? "ys" : "y"}</b> before the wallet was ever asked — <code>${esc(results.find((r) => !r.passed).reason)}</code>. <b>The loop never stopped</b>: it resumed with the next in-scope buy.`
+      : `Every buy stayed within the envelope — <b>nothing was held</b>.`;
+
+    await KCP.printReceipt(el("well"), {
+      title: "AUTONOMOUS SPEND RUN", meta: "gate: conformance · spend",
+      lines: results.map((r) => ({ k: r.action, v: r.passed ? "✓" : "✗" })),
+      stampClass: held ? "block" : "pass",
+      stampText: held ? `✗ ${held} HELD` : "✓ CLEAN RUN",
+      reason: held ? results.find((r) => !r.passed).reason : `all ${results.length} buys settled, ${authorized} USD authorized`,
+      footer: [
+        { k: "wallet authorized", v: authorized + " USD" },
+        { k: "held (never authorized)", v: held },
+        { k: "run", v: held ? "resumed after each hold" : "clean" },
+      ],
+      payload: {
+        action: "autonomous_spend_run", envelope: scope.spend, steps: results,
+        verdict: { gate: "conformance", passed: held === 0, authorized },
+      },
+    });
+    el("run").disabled = false;
+  });
+  sync();
+})();
+</script>
+</body>
+</html>

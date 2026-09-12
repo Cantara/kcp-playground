@@ -9,7 +9,7 @@
 </head>
 <body>
 <div class="wrap">
-  <header class="top"><span class="brand"><a href="../../"><b>KCP</b> Playground</a> · 05 / 12 · what it concludes</span></header>
+  <header class="top"><span class="brand"><a href="../../"><b>KCP</b> Playground</a> · 05 / 16 · what it concludes</span></header>
   <h1>The Confident Fool</h1>
   <p class="sub">An answer the model isn't sure of shouldn't ship as if it were certain. The <b>confidence gate</b> halts a shaky conclusion for a second opinion — deterministically, at a declared threshold. It runs downstream of synthesis: confidence is a property of the <em>output</em>. The model's self-report is only a <em>proposal</em>; the gate <em>adjudicates</em> with pure code — <code>score &gt;= threshold</code>, fail-closed. <b>The verdict is computed by the real <code>assess()</code> gate logic from <code>kcp-agent</code>, and signed &amp; verified with genuine <code>crypto.subtle</code> in your browser.</b></p>
 
@@ -45,7 +45,7 @@
     </nav>
   </div>
 
-  <p class="foot">Station 05 of 12. Decision = the real <code>assess()</code> confidence gate from <code>kcp-agent/src/assess.ts</code> (verbatim: <code>passed = score &gt;= threshold</code>, so it PROCEEDS <em>at</em> the line and HALTS strictly below it; default aggregate <code>min</code>, fail-closed). Reason strings are lifted from the gate's own <code>detail</code>. Verdict signed &amp; verified with genuine <code>crypto.subtle</code>.</p>
+  <p class="foot">Station 05 of 16. Decision = the real <code>assess()</code> confidence gate from <code>kcp-agent/src/assess.ts</code> (verbatim: <code>passed = score &gt;= threshold</code>, so it PROCEEDS <em>at</em> the line and HALTS strictly below it; default aggregate <code>min</code>, fail-closed). Reason strings are lifted from the gate's own <code>detail</code>. Verdict signed &amp; verified with genuine <code>crypto.subtle</code>.</p>
 </div>
 
 <script src="../../assets/shell.js"></script>

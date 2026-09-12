@@ -6,10 +6,11 @@ genuinely signed receipt, and is correctly wired into the site's numbering and n
 
 ## Preconditions
 
-- Know which organ the new station demonstrates (the existing twelve: the playbook,
+- Know which organ the new station demonstrates (the existing sixteen: the playbook,
   what it does, what it concludes, what it remembers, autonomous, what it spends,
-  one adjudicator, the enabler, the trail, the composition) and which real
-  `kcp-agent`/`kcp-harness` function it lifts verbatim — or, if the browser genuinely
+  one adjudicator, the enabler, the trail, the composition, what it spends to know,
+  what it spends unattended, what it can prove it spent, your own coding agent) and
+  which real `kcp-agent`/`kcp-harness` function it lifts verbatim — or, if the browser genuinely
   cannot run the real code (it needs project signing keys, server-side state, etc.),
   say so explicitly in the station's copy, the way `memory` and `poisoned-playbook`
   already do. Do not silently ship a simulation as if it were the real thing.

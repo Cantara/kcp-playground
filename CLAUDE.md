@@ -1,6 +1,6 @@
 # KCP Playground
 
-Twelve interactive, in-browser demo stations for the KCP "defendable agent" — each
+Sixteen interactive, in-browser demo stations for the KCP "defendable agent" — each
 runs real `kcp-agent`/`kcp-harness` decision code client-side and signs its verdict
 with genuine `crypto.subtle`. Static site served via GitHub Pages: no build, no server.
 
@@ -20,7 +20,7 @@ how to add a new demo station without breaking the numbering below.
 ## Gotchas
 
 - Every `demos/<slug>/index.html` is self-contained and hardcodes its own
-  position/total ("08 / 12") and prev/next nav links — nothing computes these.
+  position/total ("08 / 16") and prev/next nav links — nothing computes these.
   Adding or reordering a station means editing every file's numbering, not just
   `index.html`.
 - `assets/shell.js`'s `KCP.printReceipt()` is the only place verdicts get genuinely

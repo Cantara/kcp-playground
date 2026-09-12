@@ -5,10 +5,13 @@
 Interactive, in-browser demos of the **defendable agent** — the KCP family's governed
 AI agent that keeps a written, checkable *receipt* for everything it does.
 
-Twelve stations, one per organ. Each runs the **real** `kcp-agent` / `kcp-harness`
+Sixteen stations, one per organ. Each runs the **real** `kcp-agent` / `kcp-harness`
 decision code in the browser (no server, nothing scripted) and signs each verdict with
 genuine `crypto.subtle` (Ed25519 where supported, ECDSA P-256 fallback). Drag the
 controls and the adjudicator re-decides live; a thermal printer prints the verdict.
+The last station runs the same real conformance code that governs a live Pi
+coding-agent session in the `pi-kcp` repo's own demo suite — not a browser stand-in
+for a different mechanism.
 
 - **Live:** https://cantara.github.io/kcp-playground/
 - **The reveal:** https://wiki.totto.org/blog/2026/07/22/the-ai-agent-that-keeps-the-receipts/

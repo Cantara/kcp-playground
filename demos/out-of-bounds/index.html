@@ -9,7 +9,7 @@
 </head>
 <body>
 <div class="wrap">
-  <header class="top"><span class="brand"><a href="../../"><b>KCP</b> Playground</a> · 03 / 12 · what it does</span></header>
+  <header class="top"><span class="brand"><a href="../../"><b>KCP</b> Playground</a> · 03 / 16 · what it does</span></header>
   <h1>Out of Bounds</h1>
   <p class="sub">Once a skill is loaded, every governed action must stay inside the paths and tools it declared. This is <b>grounding for actions</b>: an action that touches a tool or path the skill never declared is out of scope — surfaced as a gap and <b>held before it executes</b>. Declare an <code>action_scope</code>, aim an action at it, and watch the receipt print. <b>The verdict is computed by the real <code>checkConformance</code> tool/path logic from <code>kcp-harness</code>, and signed &amp; verified with genuine <code>crypto.subtle</code> in your browser.</b></p>
 
@@ -62,7 +62,7 @@
     </nav>
   </div>
 
-  <p class="foot">Station 03 of 12. Decision = the real <code>checkConformance</code> tool/path logic from <code>kcp-harness</code> (verbatim: fail-closed no-scope → tools → paths, with <code>normalizePath</code>/<code>matchesPrefix</code> traversal-safe prefix membership). On a held action, the tool is never invoked — downstream is <b>NOT REACHED</b>. Receipt signed &amp; verified with genuine <code>crypto.subtle</code>.</p>
+  <p class="foot">Station 03 of 16. Decision = the real <code>checkConformance</code> tool/path logic from <code>kcp-harness</code> (verbatim: fail-closed no-scope → tools → paths, with <code>normalizePath</code>/<code>matchesPrefix</code> traversal-safe prefix membership). On a held action, the tool is never invoked — downstream is <b>NOT REACHED</b>. Receipt signed &amp; verified with genuine <code>crypto.subtle</code>.</p>
 </div>
 
 <script src="../../assets/shell.js"></script>
