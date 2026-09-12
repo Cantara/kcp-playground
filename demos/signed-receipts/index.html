@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>KCP Playground — Signed Receipts, Provable Spend</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><text y='14' font-size='14'>🔏</text></svg>">
+<link rel="stylesheet" href="../../assets/shell.css">
+<style>.tamperRow { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px dashed var(--line); font-family: var(--mono); font-size: 0.84rem; }
+.tamperRow:last-child { border-bottom: none; }
+.tamperRow button { font-family: var(--mono); font-size: 0.78rem; padding: 5px 10px; border-radius: 7px; border: 1px dashed var(--line); background: transparent; color: var(--muted); cursor: pointer; }
+.tamperRow button:hover { border-color: var(--brass-dim); color: var(--brass); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top"><span class="brand"><a href="../../"><b>KCP</b> Playground</a> · 15 / 16 · what it can prove it spent</span></header>
+  <h1>Signed Receipts, Provable Spend</h1>
+  <p class="sub">A settled purchase is signed over a <b>canonical, fixed-field-order</b> payload — <code>{v, id, vendor, amount, currency, wallet, timestamp}</code> — so the signature commits to exactly what happened, byte for byte. Sign a genuine receipt, then tamper one field at a time and watch which ones the signature catches. <b>The canonicalization is the real <code>canonicalPurchaseReceiptPayload</code> from <code>kcp-harness</code>; the signing is genuine <code>crypto.subtle</code> Ed25519, right here in your browser.</b></p>
+
+  <div class="stage">
+    <p class="narrate" id="narrate">Press <b>▶ Settle &amp; sign</b> to sign a genuine receipt, then try tampering a field below.</p>
+    <div class="grid">
+      <div>
+        <div class="card">
+          <h2><span class="dot"></span> settlement · x402 (real fixture)</h2>
+          <div class="field"><label>vendor</label><div class="verifyline" id="rVendor">0xVendorAcmeData</div></div>
+          <div class="field"><label>amount</label><div class="verifyline" id="rAmount">250 USDC</div></div>
+          <button class="run" id="run">▶ Settle &amp; sign</button>
+        </div>
+        <div class="card">
+          <h2><span class="dot"></span> tamper one field, then re-verify</h2>
+          <div id="tamperControls" style="opacity:0.4;pointer-events:none">
+            <div class="tamperRow"><span>genuine (unmodified)</span><button data-t="genuine">verify</button></div>
+            <div class="tamperRow"><span>amount → 1250 (bumped)</span><button data-t="amount">verify</button></div>
+            <div class="tamperRow"><span>vendor → 0xVendorBetaFeed (swapped)</span><button data-t="vendor">verify</button></div>
+            <div class="tamperRow"><span>currency → USD (swapped)</span><button data-t="currency">verify</button></div>
+          </div>
+          <div id="tamperResults"></div>
+        </div>
+      </div>
+      <div class="printer">
+        <div class="slot"></div>
+        <div class="paperwell" id="well"><div class="empty">no receipt yet —<br>the printer is warm</div></div>
+        <div class="ledger"><span>signature</span><span class="amt" id="ledger">none yet</span></div>
+      </div>
+    </div>
+
+    <nav class="nav">
+      <a href="../runaway-spender/">← The Runaway Spender</a>
+      <a href="../../">All stations</a>
+      <a href="../govern-the-coding-agent/">Govern the Coding Agent →</a>
+    </nav>
+  </div>
+
+  <p class="foot">Station 15 of 16. Canonicalization = the real <code>canonicalPurchaseReceiptPayload</code> from <code>kcp-harness</code> (verbatim field order: <code>v, id, vendor, amount, currency, wallet, timestamp</code> — fixed so a signature made today verifies byte-for-byte tomorrow, independent of object construction order). Signature = genuine <code>crypto.subtle</code> Ed25519 sign/verify, matching the harness's own <code>signPurchaseReceipt</code> / <code>verifyPurchaseReceipt</code> mechanism (PEM-decoded keys server-side; raw <code>CryptoKey</code> here).</p>
+</div>
+
+<script src="../../assets/shell.js"></script>
+<script>
+(() => {
+  "use strict";
+  const { el, esc } = KCP; KCP.initTheme();
+
+  // ---- REAL canonicalization (verbatim: kcp-harness/src/purchase-receipt.ts's
+  //      canonicalPurchaseReceiptPayload — fixed field order, versioned) ----
+  function canonicalPurchaseReceiptPayload(p) {
+    return JSON.stringify({ v: 1, id: p.id, vendor: p.vendor, amount: p.amount, currency: p.currency, wallet: p.wallet, timestamp: p.timestamp });
+  }
+
+  // Real fixture (pi-kcp/demos/14-signed-receipts's own first settled purchase).
+  const GENUINE = { id: "purchase-0xabc123", vendor: "0xVendorAcmeData", amount: 250, currency: "USDC", wallet: "0xWalletAgent001", timestamp: "2026-09-01T12:00:00.000Z" };
+
+  let signedBytes = null;
+  el("run").addEventListener("click", async () => {
+    el("run").disabled = true;
+    const canonical = canonicalPurchaseReceiptPayload(GENUINE);
+    const signed = await KCP.sign(canonical);
+    signedBytes = signed ? signed.bytes : null;
+    el("ledger").textContent = KCP.signerLabel();
+    el("tamperControls").style.opacity = "1";
+    el("tamperControls").style.pointerEvents = "auto";
+    el("tamperResults").innerHTML = "";
+    el("narrate").innerHTML = `Signed the canonical payload <code>${esc(canonical)}</code>. Now tamper a field below and re-verify against the <b>same signature</b>.`;
+
+    await KCP.printReceipt(el("well"), {
+      title: "PURCHASE SETTLED", meta: "receipt: purchase_settled",
+      lines: [
+        { k: "vendor", v: GENUINE.vendor }, { k: "amount", v: GENUINE.amount + " " + GENUINE.currency },
+        { k: "wallet", v: GENUINE.wallet }, { k: "id", v: GENUINE.id },
+      ],
+      stampClass: "pass", stampText: "✓ SETTLED",
+      reason: "settled over a real x402 handshake · signature commits to the canonical payload",
+      payload: GENUINE,
+    });
+    el("run").disabled = false;
+  });
+
+  const TAMPERS = {
+    genuine: (p) => p,
+    amount: (p) => ({ ...p, amount: 1250 }),
+    vendor: (p) => ({ ...p, vendor: "0xVendorBetaFeed" }),
+    currency: (p) => ({ ...p, currency: "USD" }),
+  };
+  document.querySelectorAll("[data-t]").forEach((b) => b.addEventListener("click", async () => {
+    if (!signedBytes) return;
+    const candidate = TAMPERS[b.dataset.t](GENUINE);
+    const canonical = canonicalPurchaseReceiptPayload(candidate);
+    const ok = await KCP.verify(canonical, signedBytes);
+    const row = document.createElement("div");
+    row.className = "verifyline";
+    row.innerHTML = `verify(${esc(b.dataset.t)}): <b class="${ok ? "ok" : "no"}">${ok ? "✓ valid" : "✗ REJECTED"}</b>`;
+    el("tamperResults").prepend(row);
+    el("narrate").innerHTML = b.dataset.t === "genuine"
+      ? `The unmodified payload verifies — <b>the signature is genuine</b>.`
+      : ok
+        ? `Unexpected: the tampered payload verified. (This should never happen — the canonical string changed.)`
+        : `The <code>${esc(b.dataset.t)}</code> field changed the canonical string byte-for-byte — <b>the same signature no longer verifies</b>. The receipt fails closed rather than lying about what was spent.`;
+  }));
+})();
+</script>
+</body>
+</html>

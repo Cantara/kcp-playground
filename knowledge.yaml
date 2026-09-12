@@ -2,7 +2,7 @@
 kcp_version: "0.32"
 project: "KCP Playground"
 version: "1.0.0"
-updated: "2026-08-25"
+updated: "2026-09-12"
 
 trust:
   provenance:
@@ -16,19 +16,21 @@ freshness_policy:
 description: >
   Interactive, in-browser demos of the defendable agent — the KCP family's
   governed AI agent that keeps a written, checkable receipt for every
-  decision. Twelve stations, one per organ, each running the real
+  decision. Sixteen stations, one per organ, each running the real
   kcp-agent / kcp-harness decision code in the browser (no server, nothing
   scripted) and signing each verdict with genuine crypto.subtle
   (Ed25519 where supported, ECDSA P-256 fallback). Static site, no build.
+  The last station runs the same real conformance code that governs a live
+  Pi coding-agent session in the pi-kcp repo's own demo suite.
 
 units:
   - id: overview
     path: README.md
-    intent: "What is KCP Playground, what are the twelve stations, and how
+    intent: "What is KCP Playground, what are the sixteen stations, and how
       is it built (shared shell, per-station demos, live signing)?"
     scope: global
     audience: [human, agent, developer]
-    validated: "2026-08-25"
+    validated: "2026-09-12"
     triggers:
       [
         kcp playground,

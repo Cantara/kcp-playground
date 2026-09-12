@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>KCP Playground — Govern the Coding Agent</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><text y='14' font-size='14'>🧑‍💻</text></svg>">
+<link rel="stylesheet" href="../../assets/shell.css">
+</head>
+<body>
+<div class="wrap">
+  <header class="top"><span class="brand"><a href="../../"><b>KCP</b> Playground</a> · 16 / 16 · your own coding agent</span></header>
+  <h1>Govern the Coding Agent</h1>
+  <p class="sub">Every other station governs an agent talking to a proxy. This one is <code>pi-kcp</code> itself — the extension that governs a real Pi coding-agent session, live. A skill self-loads by reading its own <code>SKILL.md</code>, does the in-scope read it was built for, then reaches for something it wasn't. <b>The verdict below is the same real <code>checkConformance</code> paths/tools branch that governs a real Pi session with a real model in the <code>pi-kcp</code> repo's own demo 16</b> — nothing here is simulating a different mechanism.</p>
+
+  <div class="stage">
+    <p class="narrate" id="narrate">Set the skill's scope, then press <b>▶ Run the coding-agent turn</b>. It reads its own skill file, reads the one file it's scoped to, then attempts one it isn't.</p>
+    <div class="grid">
+      <div>
+        <div class="presets">
+          <button class="preset" data-preset="real">the real pi-kcp demo</button>
+          <button class="preset" data-preset="cantselfload">a real quirk: forget the skill's own scope</button>
+        </div>
+        <div class="card">
+          <h2><span class="dot"></span> skill · ops-deploy · action_scope.paths</h2>
+          <div class="chips" id="pathChips">
+            <span class="chip" role="button" tabindex="0" aria-pressed="true" data-p="ops/">ops/</span>
+            <span class="chip" role="button" tabindex="0" aria-pressed="true" data-p="skills/">skills/ <span style="opacity:.6">(its own SKILL.md)</span></span>
+            <span class="chip" role="button" tabindex="0" aria-pressed="false" data-p="secrets/">secrets/</span>
+          </div>
+        </div>
+        <div class="card">
+          <h2><span class="dot"></span> the model's turn</h2>
+          <div id="steps"><div class="verifyline">idle — no run yet</div></div>
+        </div>
+        <button class="run" id="run">▶ Run the coding-agent turn</button>
+      </div>
+      <div class="printer">
+        <div class="slot"></div>
+        <div class="paperwell" id="well"><div class="empty">no receipt yet —<br>the printer is warm</div></div>
+        <div class="ledger"><span>turn · status</span><span class="amt" id="ledger">standby</span></div>
+      </div>
+    </div>
+
+    <nav class="nav">
+      <a href="../signed-receipts/">← Signed Receipts</a>
+      <a href="../../">All stations</a>
+      <a href="../superseded-policy/">Back to the start →</a>
+    </nav>
+  </div>
+
+  <p class="foot">Station 16 of 16. Decision = the real <code>checkConformance</code> paths/tools branch from <code>kcp-harness</code> — the same code the <code>pi-kcp</code> extension's own <code>tool_call</code> hook runs against a real <code>pi</code> process and a real model (see <code>pi-kcp/demos/16-govern-the-coding-agent</code> for the live version — a real RPC session, real model, no browser). The "forget the skill's own scope" preset reproduces a real, live-discovered finding: <code>pi-kcp</code> activates a skill on its self-load read of <code>SKILL.md</code> and checks that <b>same read</b> against the scope it just declared — a skill whose own directory isn't in its own <code>action_scope.paths</code> can never load itself.</p>
+</div>
+
+<script src="../../assets/shell.js"></script>
+<script>
+(() => {
+  "use strict";
+  const { el, esc } = KCP; KCP.initTheme();
+
+  // ---- REAL conformance logic (verbatim: paths/tools branch of checkConformance,
+  //      kcp-harness/src/conformance.ts — the same code pi-kcp's built-in
+  //      HarnessConformanceChecker runs against a real Pi tool_call) ----
+  function normalizePath(p) {
+    let n = p.replace(/\/+/g, "/");
+    if (n.startsWith("./")) n = n.slice(2);
+    const parts = n.split("/"); const resolved = [];
+    for (const part of parts) {
+      if (part === "..") { if (resolved.length > 0 && resolved[resolved.length - 1] !== "..") resolved.pop(); }
+      else if (part !== ".") resolved.push(part);
+    }
+    return resolved.join("/");
+  }
+  function matchesPrefix(path, prefix) {
+    const a = path.replace(/\/+$/, ""), b = prefix.replace(/\/+$/, "");
+    return a === b || a.startsWith(b + "/");
+  }
+  const isNonEmpty = (a) => Array.isArray(a) && a.length > 0;
+  function targetInPrefixes(target, prefixes) {
+    const norm = normalizePath(target);
+    return prefixes.some((p) => matchesPrefix(norm, normalizePath(p)));
+  }
+  function checkConformance(action, scope) {
+    if (!isNonEmpty(scope.paths)) return { passed: false, reason: `the active skill declares no action_scope — fail-closed; action "${action.tool}" is held for review` };
+    for (const target of action.paths) {
+      if (!targetInPrefixes(target, scope.paths)) {
+        return { passed: false, reason: `target "${target}" is outside the skill's authorized paths [${scope.paths.join(", ")}]` };
+      }
+    }
+    return { passed: true, reason: `action "${action.tool}" on ${action.paths.join(", ")} is within the active skill's declared action_scope` };
+  }
+
+  const chips = [...document.querySelectorAll("#pathChips .chip")];
+  const scopePaths = () => chips.filter((c) => c.getAttribute("aria-pressed") === "true").map((c) => c.dataset.p);
+  chips.forEach((c) => {
+    const t = () => c.setAttribute("aria-pressed", c.getAttribute("aria-pressed") === "true" ? "false" : "true");
+    c.addEventListener("click", t);
+    c.addEventListener("keydown", (e) => { if (e.key === " " || e.key === "Enter") { e.preventDefault(); t(); } });
+  });
+  const presets = { real: ["ops/", "skills/"], cantselfload: ["ops/"] };
+  document.querySelectorAll(".preset").forEach((b) => b.addEventListener("click", () => {
+    const p = presets[b.dataset.preset];
+    chips.forEach((c) => c.setAttribute("aria-pressed", p.includes(c.dataset.p) ? "true" : "false"));
+  }));
+
+  // The real turn's fixed script (pi-kcp/demos/16-govern-the-coding-agent's own captured run):
+  // self-load, the in-scope read, then the out-of-scope one the skill's own SKILL.md
+  // instructs it to attempt regardless.
+  const SCRIPT = [
+    { action: "read skills/ops-deploy/SKILL.md (self-load)", tool: "read", paths: ["skills/ops-deploy/SKILL.md"] },
+    { action: "read ops/service.conf (in scope)", tool: "read", paths: ["ops/service.conf"] },
+    { action: "read secrets/master.key (attempted regardless)", tool: "read", paths: ["secrets/master.key"] },
+  ];
+
+  const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+  const stepsEl = el("steps");
+  function renderStep(action, passed) {
+    const d = document.createElement("div");
+    d.className = "verifyline";
+    d.innerHTML = esc(action) + " · " + (passed ? '<b class="ok">✓ allowed</b>' : '<b class="no">✗ BLOCKED</b>');
+    stepsEl.appendChild(d);
+  }
+
+  el("run").addEventListener("click", async () => {
+    el("run").disabled = true;
+    stepsEl.innerHTML = "";
+    const scope = { paths: scopePaths() };
+    el("narrate").innerHTML = `The model is taking its turn against <code>ops-deploy</code> (scope <code>paths [${esc(scope.paths.join(", ") || "∅")}]</code>). pi-kcp's real <code>tool_call</code> hook decides each read before it executes.`;
+    const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    const results = [];
+    for (const step of SCRIPT) {
+      if (!reduce) await sleep(450);
+      const v = checkConformance({ tool: step.tool, paths: step.paths }, scope);
+      results.push({ action: step.action, passed: v.passed, reason: v.reason });
+      renderStep(step.action, v.passed);
+    }
+
+    const selfLoadBlocked = !results[0].passed;
+    const secretBlocked = !results[2].passed;
+    el("ledger").textContent = results.every((r) => r.passed) ? "clean turn" : "governed";
+    el("narrate").innerHTML = selfLoadBlocked
+      ? `<b>The skill couldn't even load itself</b> — <code>${esc(results[0].reason)}</code>. This is the real quirk: pi-kcp checks a skill's self-load read against the scope it just declared, so a skill whose own directory isn't in its own <code>paths</code> can never activate.`
+      : secretBlocked
+        ? `The skill loaded, did its in-scope read, then reached for <code>secrets/master.key</code> — <b>blocked before the read ever executed</b>: <code>${esc(results[2].reason)}</code>. The model never sees the secret's contents.`
+        : `Every read stayed within the skill's declared scope — nothing was blocked.`;
+
+    await KCP.printReceipt(el("well"), {
+      title: "TOOL_CALL RECEIPT", meta: "gate: conformance · pi-kcp",
+      lines: results.map((r) => ({ k: r.action, v: r.passed ? "✓" : "✗" })),
+      stampClass: results.every((r) => r.passed) ? "pass" : "block",
+      stampText: results.every((r) => r.passed) ? "✓ CLEAN TURN" : "✗ GOVERNED",
+      reason: results.find((r) => !r.passed)?.reason ?? "every action within the declared action_scope",
+      footer: [
+        { k: "self-load", v: results[0].passed ? "succeeded" : "BLOCKED" },
+        { k: "secret ever read", v: results[2].passed ? "yes" : "no" },
+      ],
+      payload: {
+        action: "tool_call_turn", skill: "ops-deploy", scope,
+        steps: results, verdict: { gate: "conformance", passed: results.every((r) => r.passed) },
+      },
+    });
+    el("run").disabled = false;
+  });
+})();
+</script>
+</body>
+</html>

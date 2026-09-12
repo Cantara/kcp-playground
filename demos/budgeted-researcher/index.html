@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>KCP Playground — The Budgeted Researcher</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><text y='14' font-size='14'>🧮</text></svg>">
+<link rel="stylesheet" href="../../assets/shell.css">
+</head>
+<body>
+<div class="wrap">
+  <header class="top"><span class="brand"><a href="../../"><b>KCP</b> Playground</a> · 13 / 16 · what it spends to know</span></header>
+  <h1>The Budgeted Researcher</h1>
+  <p class="sub">A research agent plans over a corpus where some sources are free and some are pay-per-request (x402). Given a hard spend ceiling, the planner charges each paid source against it in relevance order — and <b>skips whichever one would overspend, with the exact arithmetic</b>. Drag the ceiling and watch the walk. <b>The verdict is computed by the real <code>money_budget</code> gate arithmetic from <code>kcp-agent</code>'s planner, in your browser.</b></p>
+
+  <div class="stage">
+    <p class="narrate" id="narrate">Set a ceiling, then press <b>▶ Plan the research</b>. The planner walks its four sources in relevance order — highest-scored premium report first — and stops charging the moment one would overspend.</p>
+    <div class="grid">
+      <div>
+        <div class="presets">
+          <button class="preset" data-preset="tight">the real demo (ceiling 5)</button>
+          <button class="preset" data-preset="loose">everything fits (ceiling 9)</button>
+          <button class="preset" data-preset="broke">only the free one (ceiling 2)</button>
+        </div>
+        <div class="card">
+          <h2><span class="dot"></span> researcher · --budget</h2>
+          <div class="field"><label>ceiling <span class="val"><span id="ceilV">5</span> USDC</span></label><input type="range" id="ceiling" min="0" max="9" step="1" value="5"></div>
+        </div>
+        <div class="card">
+          <h2><span class="dot"></span> the corpus, in relevance order</h2>
+          <div id="sources"></div>
+        </div>
+        <button class="run" id="run">▶ Plan the research</button>
+      </div>
+      <div class="printer">
+        <div class="slot"></div>
+        <div class="paperwell" id="well"><div class="empty">no receipt yet —<br>the printer is warm</div></div>
+        <div class="ledger"><span>projected spend</span><span class="amt" id="ledger">— of — USDC</span></div>
+      </div>
+    </div>
+
+    <nav class="nav">
+      <a href="../composition/">← The Composition Escape</a>
+      <a href="../../">All stations</a>
+      <a href="../runaway-spender/">The Runaway Spender →</a>
+    </nav>
+  </div>
+
+  <p class="foot">Station 13 of 16. Decision = the real <code>money_budget</code> gate arithmetic from <code>kcp-agent</code>'s planner (verbatim: greedy, score-ordered — take a source if <code>spent + price ≤ ceiling</code>, else skip it with the arithmetic and keep walking; a cheaper source further down can still fit). Corpus and prices match the real fixture in <code>pi-kcp/demos/11-budgeted-researcher</code> exactly.</p>
+</div>
+
+<script src="../../assets/shell.js"></script>
+<script>
+(() => {
+  "use strict";
+  const { el, esc } = KCP; KCP.initTheme();
+
+  // ---- REAL money_budget gate logic (verbatim: kcp-agent/src/planner.ts, the greedy
+  //      spend-ceiling walk — currency check + "over budget: N would exceed remaining
+  //      R of C" arithmetic; same real fixture prices as pi-kcp/demos/11-budgeted-researcher) ----
+  function money(n) { return Math.round(n * 1e6) / 1e6; }
+  function planWithBudget(sources, ceiling, currency) {
+    let spend = 0;
+    const decided = [];
+    for (const u of sources) {
+      if (u.price === undefined) {
+        decided.push({ ...u, selected: true, reason: "free — no budget check" });
+        continue;
+      }
+      if (spend + u.price > ceiling + 1e-9) {
+        decided.push({ ...u, selected: false, reason: `over budget: ${u.price} would exceed remaining ${money(ceiling - spend)} of ${ceiling} ${currency}` });
+        continue;
+      }
+      spend += u.price;
+      decided.push({ ...u, selected: true, reason: `bought — ${u.price} ${currency}, ${money(ceiling - spend)} remaining` });
+    }
+    return { decided, spend };
+  }
+
+  // Real fixture, in the planner's own relevance-score order (pi-kcp/demos/11-budgeted-researcher/fixtures/knowledge.yaml).
+  const CURRENCY = "USDC";
+  const SOURCES = [
+    { id: "premium-adoption-report", price: 3 },
+    { id: "premium-forecast-report", price: 4 },
+    { id: "free-market-primer", price: undefined },
+    { id: "paid-vendor-brief", price: 2 },
+  ];
+
+  function renderSources() {
+    el("sources").innerHTML = SOURCES.map((s) =>
+      `<div class="verifyline">${esc(s.id)} ${s.price === undefined ? "<b>[free]</b>" : `<b>[${s.price} ${CURRENCY}/request]</b>`}</div>`
+    ).join("");
+  }
+  renderSources();
+
+  const ceiling = el("ceiling");
+  const sync = () => { el("ceilV").textContent = ceiling.value; };
+  ceiling.addEventListener("input", sync);
+  const presets = { tight: 5, loose: 9, broke: 2 };
+  document.querySelectorAll(".preset").forEach((b) => b.addEventListener("click", () => { ceiling.value = presets[b.dataset.preset]; sync(); }));
+
+  el("run").addEventListener("click", async () => {
+    const c = Number(ceiling.value);
+    const { decided, spend } = planWithBudget(SOURCES, c, CURRENCY);
+    const skipped = decided.filter((d) => !d.selected);
+    const selected = decided.filter((d) => d.selected);
+
+    el("ledger").textContent = `${money(spend)} of ${c} ${CURRENCY}`;
+    el("narrate").innerHTML = skipped.length
+      ? `The planner walked the corpus in relevance order and <b>skipped ${skipped.length} source${skipped.length > 1 ? "s" : ""}</b> — <code>${esc(skipped[0].reason)}</code>. Everything selected before it still stands: the walk is greedy, not a hard cliff.`
+      : `Every source fit the ceiling — <b>nothing was skipped</b>. Projected spend never exceeds the budget.`;
+
+    await KCP.printReceipt(el("well"), {
+      title: "PLAN RECEIPT", meta: "gate: money_budget · greedy walk",
+      lines: decided.map((d) => ({ k: d.id, v: d.selected ? "✓ selected" : "✗ skipped" })),
+      stampClass: skipped.length ? "block" : "pass",
+      stampText: skipped.length ? `✗ ${skipped.length} SKIPPED` : "✓ ALL SELECTED",
+      reason: skipped.length ? skipped[0].reason : `projected spend ${money(spend)} of ${c} ${CURRENCY}; ${money(c - spend)} remaining.`,
+      footer: [
+        { k: "ceiling", v: c + " " + CURRENCY },
+        { k: "projected spend", v: money(spend) + " " + CURRENCY },
+        { k: "remaining", v: money(c - spend) + " " + CURRENCY },
+      ],
+      payload: {
+        action: "plan", budget: { ceiling: c, currency: CURRENCY },
+        selected: selected.map((s) => s.id), skipped: skipped.map((s) => ({ id: s.id, reason: s.reason })),
+        verdict: { gate: "money_budget", passed: skipped.length === 0, projectedSpend: money(spend) },
+      },
+    });
+  });
+  sync();
+})();
+</script>
+</body>
+</html>
